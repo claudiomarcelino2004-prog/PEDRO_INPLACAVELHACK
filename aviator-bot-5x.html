@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVIATOR PRO — Bot Baixo Risco</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --g1:#00FF41;--g2:#00E676;--g3:#00C853;
+  --gold:#FFD700;--red:#FF1744;--orange:#FF6D00;
+  --cyan:#00BCD4;--purple:#7C4DFF;
+  --border:rgba(0,255,65,0.15);--border2:rgba(0,255,65,0.4);
+  --text:#E0FFE8;--muted:#4A7A55;
+  --card:rgba(0,255,65,0.04);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#000;color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* MATRIX */
+#cv{position:fixed;top:0;left:0;width:100%;height:100%;opacity:.07;pointer-events:none;z-index:0;}
+
+/* WRAP */
+.wrap{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 0 40px;}
+
+/* HEADER */
+header{background:rgba(0,0,0,.97);border-bottom:1px solid var(--border);padding:0 16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(20px);}
+.hdr{display:flex;align-items:center;justify-content:space-between;height:52px;}
+.logo{display:flex;align-items:center;gap:8px;font-family:'Orbitron',monospace;font-weight:900;font-size:.85rem;letter-spacing:2px;color:var(--g1);}
+.logo-ic{width:32px;height:32px;background:linear-gradient(135deg,#00C853,#00FF41);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 0 12px rgba(0,255,65,.4);}
+.badge{display:flex;align-items:center;gap:4px;background:rgba(0,255,65,.07);border:1px solid rgba(0,255,65,.3);padding:4px 10px;border-radius:50px;font-size:.65rem;font-weight:700;color:var(--g2);}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--g2);animation:pulse 1.2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.2;}}
+
+/* HERO */
+.hero{text-align:center;padding:24px 16px 16px;}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(0,255,65,.06);border:1px solid var(--border2);color:var(--g1);padding:4px 12px;border-radius:50px;font-size:.66rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
+.hero h1{font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:900;line-height:1.2;margin-bottom:6px;}
+.hero h1 .w1{color:#fff;}
+.hero h1 .w2{color:var(--g1);text-shadow:0 0 20px rgba(0,255,65,.4);}
+.hero-sub{font-size:.8rem;color:var(--muted);line-height:1.6;}
+.hero-sub strong{color:var(--text);}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:12px 16px;}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 6px;text-align:center;position:relative;overflow:hidden;}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--g1),transparent);}
+.stat-n{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--g1);}
+.stat-l{font-size:.6rem;color:var(--muted);margin-top:2px;text-transform:uppercase;}
+
+/* FOCUS BANNER */
+.focus-banner{margin:0 16px 14px;background:linear-gradient(135deg,rgba(0,255,65,.08),rgba(0,188,212,.05));border:1px solid rgba(0,255,65,.25);border-radius:14px;padding:13px 15px;display:flex;align-items:center;gap:10px;}
+.fb-icon{font-size:1.6rem;flex-shrink:0;}
+.fb-title{font-family:'Orbitron',monospace;font-size:.75rem;font-weight:700;color:var(--g1);margin-bottom:2px;}
+.fb-desc{font-size:.72rem;color:var(--muted);line-height:1.5;}
+.fb-badge{margin-left:auto;flex-shrink:0;background:rgba(0,255,65,.1);border:1px solid rgba(0,255,65,.3);color:var(--g1);font-family:'Orbitron',monospace;font-size:.62rem;font-weight:900;padding:5px 9px;border-radius:8px;text-align:center;}
+
+/* MAIN SIGNAL CARD */
+.sig-card{margin:0 16px 12px;background:rgba(0,0,0,.8);border:1px solid var(--border2);border-radius:20px;overflow:hidden;position:relative;}
+.sig-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--g1),var(--g2),var(--g1),transparent);animation:shimmer 3s infinite;}
+@keyframes shimmer{0%{opacity:.3;}50%{opacity:1;}100%{opacity:.3;}}
+
+.sig-top{padding:24px 18px 18px;text-align:center;}
+.sig-lbl{font-size:.62rem;color:rgba(0,255,65,.5);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;font-weight:700;}
+.sig-value{font-family:'Orbitron',monospace;font-size:5rem;font-weight:900;line-height:1;transition:all .4s;}
+.sig-value.idle{color:rgba(0,255,65,.15);}
+.sig-value.loading{color:rgba(0,255,65,.4);animation:blink .5s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+.sig-value.ready{color:var(--g1);text-shadow:0 0 30px rgba(0,255,65,.6);}
+.sig-instr{font-size:.82rem;color:rgba(0,255,65,.4);margin-top:8px;}
+
+/* ALVO E PROTECAO */
+.ap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 14px;}
+.ap-card{border-radius:14px;padding:14px;text-align:center;position:relative;overflow:hidden;display:none;}
+.ap-card.show{display:block;}
+.ap-card.alvo{background:rgba(0,255,65,.08);border:2px solid rgba(0,255,65,.4);}
+.ap-card.alvo::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#00FF41,transparent);}
+.ap-card.prot{background:rgba(255,109,0,.06);border:2px solid rgba(255,109,0,.3);}
+.ap-card.prot::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#FF6D00,transparent);}
+.ap-label{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:6px;}
+.ap-card.alvo .ap-label{color:rgba(0,255,65,.5);}
+.ap-card.prot .ap-label{color:rgba(255,109,0,.6);}
+.ap-emoji{font-size:1.2rem;margin-bottom:4px;}
+.ap-val{font-family:'Orbitron',monospace;font-size:1.7rem;font-weight:900;line-height:1;}
+.ap-card.alvo .ap-val{color:var(--g1);text-shadow:0 0 14px rgba(0,255,65,.5);}
+.ap-card.prot .ap-val{color:var(--orange);text-shadow:0 0 14px rgba(255,109,0,.4);}
+.ap-desc{font-size:.64rem;margin-top:4px;}
+.ap-card.alvo .ap-desc{color:rgba(0,255,65,.4);}
+.ap-card.prot .ap-desc{color:rgba(255,109,0,.4);}
+
+/* CONFIANCA */
+.conf-section{display:none;padding:0 16px 12px;}
+.conf-section.show{display:block;}
+.conf-title{font-size:.62rem;color:rgba(0,255,65,.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;font-weight:700;}
+.conf-bar-wrap{background:rgba(255,255,255,.04);border-radius:50px;height:8px;overflow:hidden;margin-bottom:6px;}
+.conf-bar{height:100%;border-radius:50px;transition:width .5s ease;background:linear-gradient(90deg,#FF6D00,#FFD700,#00FF41);}
+.conf-info{display:flex;justify-content:space-between;align-items:center;}
+.conf-pct{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--g1);}
+.conf-badge{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:50px;}
+.conf-badge.alta{background:rgba(0,255,65,.1);border:1px solid rgba(0,255,65,.3);color:var(--g1);}
+.conf-badge.media{background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);color:var(--gold);}
+.conf-badge.baixa{background:rgba(255,109,0,.08);border:1px solid rgba(255,109,0,.25);color:var(--orange);}
+
+/* HORARIO */
+.horario-section{display:none;padding:0 16px 12px;}
+.horario-section.show{display:block;}
+.hor-card{background:rgba(0,188,212,.05);border:1px solid rgba(0,188,212,.2);border-radius:11px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
+.hor-label{font-size:.68rem;color:rgba(0,188,212,.6);letter-spacing:1px;text-transform:uppercase;font-weight:700;}
+.hor-val{font-family:'Orbitron',monospace;font-size:.95rem;font-weight:900;color:var(--cyan);}
+
+/* PROGRESS */
+.prog-wrap{display:none;padding:0 16px 10px;}
+.prog-wrap.show{display:block;}
+.prog-outer{height:3px;background:rgba(255,255,255,.04);border-radius:50px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--g3),var(--g1));background-size:200% 100%;border-radius:50px;width:0%;transition:width .08s;animation:pgm 2s linear infinite;}
+@keyframes pgm{0%{background-position:0%;}100%{background-position:200%;}}
+.prog-info{display:flex;justify-content:space-between;font-size:.65rem;color:rgba(0,255,65,.4);margin-top:4px;}
+.prog-phase{font-size:.62rem;color:var(--g2);font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:1px;}
+
+/* PADROES */
+.padroes-section{display:none;border-top:1px solid rgba(0,255,65,.08);padding:12px 16px;}
+.padroes-section.show{display:block;}
+.pad-title{font-size:.62px;color:rgba(0,255,65,.4);letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:8px;font-size:.62rem;}
+.pad-item{display:flex;align-items:center;gap:7px;margin-bottom:6px;font-size:.79rem;color:var(--g2);font-weight:600;}
+.pad-item:last-child{margin-bottom:0;}
+
+/* GENERATE BUTTON */
+.gen-wrap{padding:0 16px 12px;}
+.btn-gen{
+  width:100%;
+  background:linear-gradient(135deg,#00C853,#00FF41);
+  border:none;border-radius:14px;color:#000;
+  font-family:'Orbitron',monospace;font-size:.9rem;font-weight:900;
+  padding:18px;cursor:pointer;letter-spacing:2px;
+  box-shadow:0 4px 26px rgba(0,255,65,.4),0 0 0 0 rgba(0,255,65,.3);
+  transition:all .3s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  position:relative;overflow:hidden;
+}
+.btn-gen::before{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
+  animation:sweep 2.5s infinite;
+}
+@keyframes sweep{0%{left:-100%;}100%{left:100%;}}
+.btn-gen:active{transform:scale(.97);}
+.btn-gen:disabled{opacity:.5;cursor:not-allowed;}
+.btn-gen:disabled::before{display:none;}
+.btn-spin{width:16px;height:16px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;display:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* NUM STREAM */
+.num-stream{display:none;margin:0 16px 8px;font-family:'Orbitron',monospace;font-size:.5rem;color:rgba(0,255,65,.3);overflow:hidden;height:18px;white-space:nowrap;background:rgba(0,0,0,.3);border-radius:6px;padding:3px 8px;}
+
+/* RECENT */
+.recent-sec{margin:0 16px 14px;}
+.rec-title{font-size:.62rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;font-weight:700;}
+.rec-grid{display:flex;gap:5px;flex-wrap:wrap;}
+.rec-item{background:rgba(0,0,0,.5);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:'Orbitron',monospace;font-size:.7rem;font-weight:700;}
+.rec-item.low5{color:var(--g1);border-color:rgba(0,255,65,.3);}
+.rec-item.low2{color:var(--red);border-color:rgba(255,23,68,.2);}
+.rec-item.mid{color:var(--gold);border-color:rgba(255,215,0,.25);}
+
+/* ALERT */
+.alert-box{display:none;margin:0 16px 12px;background:rgba(0,255,65,.05);border:1px solid rgba(0,255,65,.2);border-radius:12px;padding:12px 14px;font-size:.8rem;line-height:1.6;color:var(--text);}
+.alert-box.show{display:block;}
+.alert-box strong{color:var(--g1);}
+
+footer{text-align:center;padding:16px;border-top:1px solid var(--border);}
+footer p{font-size:.66rem;color:var(--muted);line-height:1.7;}
+footer strong{color:var(--red);}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<header>
+  <div class="hdr">
+    <div class="logo">
+      <div class="logo-ic">✈</div>
+      AVIATOR <span style="color:#fff;margin-left:2px;">PRO</span>
+    </div>
+    <div class="badge"><div class="dot"></div> LIVE</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">🎯 MODO BAIXO RISCO — ACTIVO</div>
+    <h1>
+      <span class="w1">SINAIS </span><span class="w2">SEGUROS</span>
+    </h1>
+    <p class="hero-sub">Focado em multiplicadores <strong>abaixo de 5×</strong> — maior consistência e menor risco.</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-n" id="stAcc">91%</div>
+      <div class="stat-l">Precisão</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n" id="stSig">847</div>
+      <div class="stat-l">Sinais</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n" id="stAvg">2.8×</div>
+      <div class="stat-l">Média</div>
+    </div>
+  </div>
+
+  <!-- FOCUS BANNER -->
+  <div class="focus-banner">
+    <div class="fb-icon">🎯</div>
+    <div>
+      <div class="fb-title">FOCO: MULTIPLICADORES &lt; 5×</div>
+      <div class="fb-desc">Sistema optimizado para entradas conservadoras com alta taxa de acerto.</div>
+    </div>
+    <div class="fb-badge">BAIXO<br>RISCO</div>
+  </div>
+
+  <!-- MAIN SIGNAL CARD -->
+  <div class="sig-card">
+    <div class="sig-top">
+      <div class="sig-lbl">PRÓXIMO SINAL</div>
+      <div class="sig-value idle" id="sigVal">--.-×</div>
+      <div class="sig-instr" id="sigInstr">Pressiona GERAR para obter o sinal</div>
+    </div>
+
+    <!-- NUM STREAM -->
+    <div class="num-stream" id="numStream"></div>
+
+    <!-- PROGRESS -->
+    <div class="prog-wrap" id="progWrap">
+      <div class="prog-outer"><div class="prog-fill" id="progFill"></div></div>
+      <div class="prog-info">
+        <span id="progPct">0%</span>
+        <span id="progTime">—</span>
+      </div>
+      <div class="prog-phase" id="progPhase"></div>
+    </div>
+
+    <!-- CONFIANCA -->
+    <div class="conf-section" id="confSection">
+      <div class="conf-title">Índice de Confiança</div>
+      <div class="conf-bar-wrap">
+        <div class="conf-bar" id="confBar" style="width:0%"></div>
+      </div>
+      <div class="conf-info">
+        <div class="conf-pct" id="confPct">0%</div>
+        <div class="conf-badge" id="confBadge"></div>
+      </div>
+    </div>
+
+    <!-- HORARIO -->
+    <div class="horario-section" id="horSection">
+      <div class="hor-card">
+        <div class="hor-label">⏰ Horário do Sinal</div>
+        <div class="hor-val" id="horVal">—</div>
+      </div>
+    </div>
+
+    <!-- PADROES -->
+    <div class="padroes-section" id="padSection">
+      <div class="pad-title">Padrões Detectados</div>
+      <div id="padList"></div>
+    </div>
+  </div>
+
+  <!-- ALVO E PROTECAO -->
+  <div class="ap-grid">
+    <div class="ap-card alvo" id="alvoCard">
+      <div class="ap-label">🎯 Alvo</div>
+      <div class="ap-emoji">✈️</div>
+      <div class="ap-val" id="alvoVal">—</div>
+      <div class="ap-desc">Multiplicador alvo</div>
+    </div>
+    <div class="ap-card prot" id="protCard">
+      <div class="ap-label">🛡️ Proteção</div>
+      <div class="ap-emoji">⚠️</div>
+      <div class="ap-val" id="protVal">—</div>
+      <div class="ap-desc">Sair antes de</div>
+    </div>
+  </div>
+
+  <!-- ALERT -->
+  <div class="alert-box" id="alertBox"></div>
+
+  <!-- GENERATE BUTTON -->
+  <div class="gen-wrap">
+    <button class="btn-gen" id="genBtn" onclick="generateSignal()">
+      <div class="btn-spin" id="genSpin"></div>
+      <span id="genTxt">⚡ GERAR SINAL</span>
+    </button>
+  </div>
+
+  <!-- RECENT -->
+  <div class="recent-sec">
+    <div class="rec-title">Últimos sinais gerados</div>
+    <div class="rec-grid" id="recGrid"></div>
+  </div>
+
+  <footer>
+    <p><strong>⚠ AVISO:</strong> Ferramenta de análise estatística para entretenimento.<br>
+    Apostas envolvem risco. Joga com responsabilidade.</p>
+  </footer>
+
+</div>
+
+<script>
+/* MATRIX */
+const cv=document.getElementById('cv'),cx=cv.getContext('2d');
+function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+const cols=Math.floor(cv.width/16),drops=Array(cols).fill(1);
+const chars='01アイウエABCDEF0123456789✈';
+setInterval(()=>{
+  cx.fillStyle='rgba(0,0,0,0.05)';cx.fillRect(0,0,cv.width,cv.height);
+  cx.fillStyle='#00FF41';cx.font='13px monospace';
+  drops.forEach((y,i)=>{
+    cx.fillText(chars[Math.floor(Math.random()*chars.length)],i*16,y*16);
+    if(y*16>cv.height&&Math.random()>.975)drops[i]=0;
+    drops[i]++;
+  });
+},60);
+
+/* STATS */
+function updateStats(){
+  document.getElementById('stAcc').textContent=(88+Math.random()*6).toFixed(1)+'%';
+  document.getElementById('stSig').textContent=(800+Math.floor(Math.random()*200)).toLocaleString();
+  document.getElementById('stAvg').textContent=(2.2+Math.random()*.8).toFixed(1)+'×';
+}
+updateStats();
+
+/* RECENT */
+const recentSignals=[];
+function renderRecent(){
+  const g=document.getElementById('recGrid');
+  g.innerHTML=recentSignals.slice(0,16).map(v=>{
+    const n=parseFloat(v);
+    const cls=n<2?'low2':n<5?'low5':'mid';
+    return `<div class="rec-item ${cls}">${v}×</div>`;
+  }).join('');
+}
+
+/* GERAR SINAL */
+let generating=false;
+function generateSignal(){
+  if(generating)return;
+  generating=true;
+
+  const btn=document.getElementById('genBtn');
+  const spin=document.getElementById('genSpin');
+  const txt=document.getElementById('genTxt');
+  const sigVal=document.getElementById('sigVal');
+  const sigInstr=document.getElementById('sigInstr');
+  const progWrap=document.getElementById('progWrap');
+  const numStream=document.getElementById('numStream');
+  const confSection=document.getElementById('confSection');
+  const horSection=document.getElementById('horSection');
+  const padSection=document.getElementById('padSection');
+  const alertBox=document.getElementById('alertBox');
+  const alvoCard=document.getElementById('alvoCard');
+  const protCard=document.getElementById('protCard');
+
+  // Reset
+  btn.disabled=true;spin.style.display='block';txt.textContent='A CALCULAR...';
+  sigVal.className='sig-value loading';sigVal.textContent='...';
+  sigInstr.textContent='A analisar padrões...';
+  progWrap.classList.add('show');
+  numStream.style.display='block';
+  confSection.classList.remove('show');
+  horSection.classList.remove('show');
+  padSection.classList.remove('show');
+  alertBox.classList.remove('show');
+  alvoCard.classList.remove('show');
+  protCard.classList.remove('show');
+  document.getElementById('confBar').style.width='0%';
+
+  const phases=['Analisando histórico...','Calculando probabilidades...','Verificando padrões < 5×...','A processar sinal...','Finalizando...'];
+  let prog=0,phaseIdx=0;
+  const progFill=document.getElementById('progFill');
+  const progPct=document.getElementById('progPct');
+  const progPhase=document.getElementById('progPhase');
+  const progTime=document.getElementById('progTime');
+  progPhase.textContent=phases[0];
+
+  // Stream de números
+  const streamInt=setInterval(()=>{
+    numStream.textContent=Array.from({length:90},()=>Math.random()>.5?'1':'0').join('');
+  },100);
+
+  // Progress
+  const progInt=setInterval(()=>{
+    prog+=Math.random()*3+1;
+    if(prog>99)prog=99;
+    progFill.style.width=prog+'%';
+    progPct.textContent=Math.floor(prog)+'%';
+    progTime.textContent=((100-prog)/20).toFixed(1)+'s';
+    phaseIdx=Math.min(Math.floor(prog/20),phases.length-1);
+    progPhase.textContent=phases[phaseIdx];
+  },80);
+
+  setTimeout(()=>{
+    clearInterval(progInt);clearInterval(streamInt);
+    progFill.style.width='100%';progPct.textContent='100%';
+    progPhase.textContent='CONCLUÍDO ✅';
+    numStream.style.display='none';
+
+    // Gerar sinal focado em < 5×
+    const signal=generateLowRiskSignal();
+
+    // Mostrar valor
+    sigVal.textContent=signal.value+'×';
+    sigVal.className='sig-value ready';
+    sigInstr.textContent='✅ Sinal pronto — entra agora!';
+
+    // Confiança
+    confSection.classList.add('show');
+    const confBar=document.getElementById('confBar');
+    const confPct=document.getElementById('confPct');
+    const confBadge=document.getElementById('confBadge');
+    setTimeout(()=>{confBar.style.width=signal.conf+'%';},100);
+    confPct.textContent=signal.conf+'%';
+    if(signal.conf>=80){confBadge.textContent='🔥 ALTA';confBadge.className='conf-badge alta';}
+    else if(signal.conf>=65){confBadge.textContent='⚡ MÉDIA';confBadge.className='conf-badge media';}
+    else{confBadge.textContent='⚠️ BAIXA';confBadge.className='conf-badge baixa';}
+
+    // Horário
+    horSection.classList.add('show');
+    const now=new Date();
+    now.setSeconds(now.getSeconds()+Math.floor(25+Math.random()*35));
+    document.getElementById('horVal').textContent=now.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+    // Alvo e Proteção
+    alvoCard.classList.add('show');
+    protCard.classList.add('show');
+    document.getElementById('alvoVal').textContent=signal.value+'×';
+    document.getElementById('protVal').textContent=signal.prot+'×';
+
+    // Padrões
+    padSection.classList.add('show');
+    const pads=generatePatterns(signal);
+    document.getElementById('padList').innerHTML=pads.map(p=>`<div class="pad-item">⬡ ${p}</div>`).join('');
+
+    // Alerta
+    alertBox.classList.add('show');
+    alertBox.innerHTML=`<strong>📋 INSTRUÇÃO:</strong> Entra na próxima rodada. Alvo: <strong>${signal.value}×</strong>. Se não subir, sai em <strong>${signal.prot}×</strong> para proteger o capital.`;
+
+    // Recentes
+    recentSignals.unshift(signal.value);
+    if(recentSignals.length>20)recentSignals.pop();
+    renderRecent();
+    updateStats();
+
+    // Reset botão
+    btn.disabled=false;spin.style.display='none';txt.textContent='⚡ GERAR NOVO SINAL';
+    progWrap.classList.remove('show');
+    generating=false;
+  },4000);
+}
+
+function generateLowRiskSignal(){
+  // Focado em < 5× com pesos:
+  // 40% → 1.3x-2x (muito baixo)
+  // 45% → 2x-4x (baixo-médio)
+  // 15% → 4x-4.9x (perto do limite)
+  const r=Math.random();
+  let val;
+  if(r<0.40) val=(1.3+Math.random()*.7).toFixed(2);
+  else if(r<0.85) val=(2+Math.random()*2).toFixed(2);
+  else val=(4+Math.random()*.9).toFixed(2);
+
+  const conf=Math.floor(65+Math.random()*30);
+  // Proteção = sempre abaixo do alvo (70-85% do alvo)
+  const protRatio=0.70+Math.random()*0.15;
+  const prot=Math.max(1.2,(parseFloat(val)*protRatio)).toFixed(2);
+
+  return {value:val, conf, prot};
+}
+
+function generatePatterns(signal){
+  const v=parseFloat(signal.value);
+  const pads=[];
+  if(v<2) pads.push('Padrão de entrada rápida (< 2×)');
+  else if(v<3) pads.push('Zona de conforto detectada (2×-3×)');
+  else pads.push('Zona de ganho moderado (3×-5×)');
+  pads.push(`Confiança do algoritmo: ${signal.conf}%`);
+  pads.push(`Proteção em ${signal.prot}× — sai se não subir`);
+  if(signal.conf>80) pads.push('Alta probabilidade estatística confirmada');
+  pads.push('Sinal validado — multiplicador < 5×');
+  return pads;
+}
+</script>
+</body>
+</html>
